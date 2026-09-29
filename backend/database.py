@@ -1,9 +1,23 @@
+import os
+import shutil
 from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import create_engine, String, Float, Text, Integer, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker, Mapped, mapped_column
 
-DATABASE_URL = "sqlite:///./datacenter.db"
+db_dir = os.path.dirname(os.path.abspath(__file__))
+default_db_path = os.path.join(db_dir, "datacenter.db")
+
+if os.environ.get("VERCEL"):
+    tmp_db_path = "/tmp/datacenter.db"
+    if not os.path.exists(tmp_db_path) and os.path.exists(default_db_path):
+        try:
+            shutil.copyfile(default_db_path, tmp_db_path)
+        except Exception:
+            pass
+    DATABASE_URL = f"sqlite:///{tmp_db_path}"
+else:
+    DATABASE_URL = f"sqlite:///{default_db_path}"
 
 engine = create_engine(
     DATABASE_URL, 
